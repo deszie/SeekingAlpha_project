@@ -346,18 +346,66 @@ def one_text_reader(file_path, log_folder=''):
     return result_df, df_marked
 
 
+def names_and_companies_getter(file_path, log_folder=''):
+
+    result_df_columns = ['Company_name',
+                         'Company_name_head',
+                         'Date',
+                         'Date_modified',
+                         'Date_published',
+                         'Date_published_dup',
+                         'Analysts_list',
+                         'Executives_list',
+                         'File_path']
+
+    text_file = open(file_path, "r")
+    lines = text_file.read()
+    text_file.close()
+    text = BeautifulSoup(lines, 'html.parser')
+    text_data = text('p')
+
+    skip_iter_flag = check_file_fullness(text_data, log_folder)
+
+    if skip_iter_flag:
+        return pd.DataFrame(columns=result_df_columns)
+    else:
+        comp_date_inf, exec_dict, analysts_dict = get_head_info(text_data, text)
+
+
+        result_list = [comp_date_inf[0],  # company
+                        comp_date_inf[1],  # company_header
+                        comp_date_inf[2],  # date
+                        comp_date_inf[3],  # date mod
+                        comp_date_inf[4],  # date pub
+                        comp_date_inf[5],  # date pub content
+                        str(analysts_dict),  # dict of analysts
+                        str(exec_dict),  # dcit of executives
+                        file_path]  # path_to_file
+
+        return pd.DataFrame([result_list], columns=result_df_columns)
 
 
 
+wd = ''
+file_path = wd + 'data/inner/3107_num_0.txt'
 
+text_file = open(file_path, "r")
+lines = text_file.read()
+text_file.close()
+text = BeautifulSoup(lines, 'html.parser')
+text_data = text('p')
 
-# wd = ''
-# file_path = wd + 'data/outer/1242-1894/1759_num_9.txt'
-#
 # df1, df2 = one_text_reader(file_path)
 
+head = get_head_info(text_data, text)
+
+print("analyst", len(head[2]))
+print("exec", len(head[1]))
 
 
+qa_start_find(text_data)
+get_oper_chunks(text_data, qa_start)
+get_qa_chunks(oper_chunk, analysts_dict)
 
 
 

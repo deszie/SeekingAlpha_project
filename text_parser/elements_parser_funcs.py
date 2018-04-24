@@ -34,7 +34,7 @@ def name_company_split(name):
         elif '-' in name:
             result_list = name.split('-')
         result_list = [result_list[0], ' - '.join(result_list[1:])]
-    return result_list
+    return list(map(lambda x: x.strip(), result_list))
 
 
 # function gets date from given str
