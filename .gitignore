@@ -2,3 +2,6 @@ data/
 Tor/
 .idea/
 README.md
+old_mess/
+.ipynb_checkpoints/
+log/

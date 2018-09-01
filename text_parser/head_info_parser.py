@@ -2,23 +2,16 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import re
 
+# from text_parser.utils import *
 
-def check_string_in_list_strings(s, l):
-    if len(s)>0:
-        for el in l:
-            if s in el:
-                return True
-    return False
 
-# function retrieving text from given tag
-def text_get(a):
-    return a.text
 
-# function dividing name of analyst or executive for person's name and company's name
 def name_company_split(name):
     undef_list = ['Unidentified Company Representative',
                   'Unidentified Corporate Participant',
-                  'Unidentified Analyst']
+                  'Unidentified Analyst',
+                  'Unknown Attendee',
+                  'Unknown Executive']
     undef_in = False
     for undef_id in undef_list:
         if undef_id in name:
@@ -37,7 +30,7 @@ def name_company_split(name):
     return list(map(lambda x: x.strip(), result_list))
 
 
-# function gets date from given str
+
 def date_getter(s):
     res = s.replace('Call End', '')
     res = res.replace('Call Start', '')
@@ -57,12 +50,16 @@ def date_getter(s):
         ret = res
     return ret[0].split('+')[0]
 
+
+
 def head_date(bstext):
     time_tags = bstext('time')
     head_time_list = [time_tags[0].get('datetime'),
                       time_tags[1].get('content'),
                       time_tags[1].text]
     return head_time_list
+
+
 
 def comp_getter(s):
     res = s.replace('Call End', '')
@@ -98,9 +95,19 @@ def comp_getter(s):
                         pat = p
     return pat
 
+
+
 def head_comp(bstext):
-    div_ahd = bstext('div', id="a-hd")[0]
-    return div_ahd('h1')[0].text
+    div_ahd_list = bstext('div', id="a-hd")
+    if len(div_ahd_list)>0:
+        div_ahd = div_ahd_list[0]
+    h1_tag_list = div_ahd('h1')
+    if len(h1_tag_list)>0:
+        return h1_tag_list[0].text
+    else:
+        return None
+
+
 
 def all_inf_date_comp(bstext, header):
     inf_list = []
@@ -110,14 +117,33 @@ def all_inf_date_comp(bstext, header):
     try:
         inf_list.append(comp_getter(header))
     except:
-        inf_list.append('error')
+        inf_list.append('ERROR')
     inf_list.append(head_comp(bstext))
     # date part
     try:
         inf_list.append(date_getter(header))
     except:
-        inf_list.append('error')
+        inf_list.append('ERROR')
     inf_list = inf_list + head_date(bstext)
     return inf_list
+
+def header_a_tag_company_name(bstext):
+    header_tag = bstext.find_all("header")[0]
+    a_tag_list = header_tag.find_all("a")
+    a_tag = None
+    for a in a_tag_list:
+        if "/symbol/" in a.get('href'):
+            a_tag = a
+    company_name = a_tag.text
+    company_name_tag_a_info = a_tag.get('title')
+    company_ticker = a_tag.get('href').replace("/symbol/", "")
+    return company_name, company_name_tag_a_info, company_ticker
+
+
+
+
+
+
+
 
 
