@@ -2,8 +2,10 @@ import pandas as pd
 from bs4 import BeautifulSoup
 import re
 
-# from text_parser.utils import *
-
+from text_parser.utils import read_txt_file_with_decoding, get_text_from_bs_tag, \
+    get_list_items_by_index, get_numbers_between_interval, count_emerging_words, \
+    count_words_from_list_in_string
+from nlp_core.names_extractor import *
 
 
 def name_company_split(name):
@@ -127,6 +129,9 @@ def all_inf_date_comp(bstext, header):
     inf_list = inf_list + head_date(bstext)
     return inf_list
 
+
+
+
 def header_a_tag_company_name(bstext):
     header_tag = bstext.find_all("header")[0]
     a_tag_list = header_tag.find_all("a")
@@ -141,6 +146,227 @@ def header_a_tag_company_name(bstext):
 
 
 
+def calc_prct_change(number_list):
+    return [None] + [(n2+1)/(n1+1) for n1, n2 in zip(number_list, number_list[1:])]
+
+def get_first_large_change(prct_chng_list, threshold=30):
+    large_chngs = [None] + list(map(lambda x: 1 if x>=threshold else 0, prct_chng_list[1:]))
+    for i in range(len(large_chngs)):
+        if large_chngs[i]==1:
+            return i
+    return None
+
+
+
+
+
+
+
+def get_abrupt_start_n(list_p_tags_text):
+    abrupt_start_n = None
+    for p in range(len(list_p_tags_text)):
+        if "[Abrupt Start]" in list_p_tags_text[p]:
+            abrupt_start_n = p
+            break
+    return abrupt_start_n
+
+
+def _get_aeo_list_headers(p_tags_str):
+    executives_flag = None
+    analysts_flag_plural = None
+    analyst_flag_singular = None
+    operator_flag = None
+    # str_tags = list(map(str, p1_tags))
+    for t in range(len(p_tags_str)):
+        if "<strong>Executives</strong>" in p_tags_str[t]:
+            executives_flag = t
+        if "<strong>Analysts</strong>" in p_tags_str[t]:
+            analysts_flag_plural = t
+        if "<strong>Analyst</strong>" in p_tags_str[t]:
+            analyst_flag_singular = t
+        if "<strong>Operator</strong>" in p_tags_str[t]:
+            operator_flag = t
+    analysts_flag = analysts_flag_plural
+    if analysts_flag_plural is None:
+        analysts_flag = analyst_flag_singular
+    return executives_flag, analysts_flag, operator_flag
+
+
+
+def _get_n_tags_with_names(p1_tags_text, names_list):
+    n_names_tags = enumerate(map(lambda x: count_emerging_words(x, names_list), p1_tags_text))
+    n_tags_with_names = list(filter(lambda x: x[1]>0, n_names_tags))
+    n_tags, count_names = list(zip(*n_tags_with_names))
+    return n_tags, count_names
+
+
+
+
+def _if_eao(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
+    analysts_list_end = first_large_change
+
+    executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, analysts_flag)
+    executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+
+    if operator_flag<first_large_change:
+        analyst_indexs = get_numbers_between_interval(n_tags_with_name, analysts_flag + 1, operator_flag)
+        analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
+    else:
+        analyst_indexs = get_numbers_between_interval(n_tags_with_name, analysts_flag + 1, analysts_list_end)
+        analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
+    return {"executives": executive_list, "analysts": analyst_list}
+
+
+
+def _if_ea(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
+    analysts_list_end = first_large_change
+
+    executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, analysts_flag)
+    executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+
+    analyst_indexs = get_numbers_between_interval(n_tags_with_name, analysts_flag + 1, analysts_list_end)
+    analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
+
+    return {"executives": executive_list, "analysts": analyst_list}
+
+
+
+def _if_eo(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
+    executives_list_end = first_large_change
+
+    if operator_flag<executives_list_end:
+        executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, operator_flag)
+        executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+    else:
+        executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, executives_list_end)
+        executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+
+    return {"executives": executive_list, "analysts": []}
+
+
+
+def _if_e(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
+    executives_list_end = first_large_change
+
+    executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, executives_list_end)
+    executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+
+    return {"executives": executive_list, "analysts": []}
+
+
+
+def get_analysts_executives_list(bstext, text_names_list):
+    p1_tags = bstext.find_all("p", attrs={"class": "p p1"})
+    p1_tags_text_list = list(map(get_text_from_bs_tag, p1_tags))
+    p1_tags_str_list = list(map(str, p1_tags))
+
+    abrupt_start_flag = get_abrupt_start_n(p1_tags_text_list)
+    stop_word_tag_flag = find_first_tag_with_stop_words(p1_tags_text_list) - 1
+
+    executives_flag, analysts_flag, operator_flag = _get_aeo_list_headers(p1_tags_str_list)
+
+    if abrupt_start_flag is not None:
+        p1_tags_text_before_main_flags_list = p1_tags_text_list[:abrupt_start_flag]
+    else:
+        p1_tags_text_before_main_flags_list = p1_tags_text_list[:stop_word_tag_flag]
+
+    p1_tags_len_list = list(map(len, p1_tags_text_before_main_flags_list))
+
+    prct_chng_list = calc_prct_change(p1_tags_len_list)
+    first_large_change = get_first_large_change(prct_chng_list, threshold=30)
+
+    first_large_change_flag = len(p1_tags_text_before_main_flags_list)
+    if first_large_change is not None:
+        first_large_change_flag = first_large_change-1
+
+    if executives_flag>first_large_change_flag:
+        raise ValueError("executives_flag > first_large_change")
+    if (analysts_flag is not None) and (analysts_flag>first_large_change_flag):
+        raise ValueError("analysts_flag > first_large_change")
+
+    n_tags_with_name, count_names_in_tags = _get_n_tags_with_names(p1_tags_text_before_main_flags_list, text_names_list)
+
+    # names = get_names_from_str_tags_list(p1_tags_text_before_main_flags_list)
+    # n_names = calc_n_names(names)
+    # n_tags_with_name_ = get_n_one_name_tags(n_names)
+
+    print()
+
+    if executives_flag is None:
+        raise ValueError("There are no executives header")
+
+    if (analysts_flag is not None) & (operator_flag is not None):
+        return _if_eao(p1_tags_text_before_main_flags_list,
+                       executives_flag,
+                       analysts_flag,
+                       operator_flag,
+                       first_large_change_flag,
+                       n_tags_with_name)
+
+    elif (analysts_flag is not None) & (operator_flag is None):
+        return _if_ea(p1_tags_text_before_main_flags_list,
+                       executives_flag,
+                       analysts_flag,
+                       operator_flag,
+                       first_large_change_flag,
+                       n_tags_with_name)
+
+    elif (analysts_flag is None) & (operator_flag is not None):
+        return _if_eo(p1_tags_text_before_main_flags_list,
+                       executives_flag,
+                       analysts_flag,
+                       operator_flag,
+                       first_large_change_flag,
+                       n_tags_with_name)
+
+    elif (analysts_flag is None) & (operator_flag is None):
+        return _if_e(p1_tags_text_before_main_flags_list,
+                       executives_flag,
+                       analysts_flag,
+                       operator_flag,
+                       first_large_change_flag,
+                       n_tags_with_name)
+
+    else:
+        raise ValueError("Troubles with Analysts and Operator flags")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__=="__main__":
+
+    from nlp_core.names_extractor import get_all_mentioned_names
+
+    file_path = "../data/txt_data/inner/3250_num_18.txt"
+    # file_path = "../data/txt_data/inner/3073_num_19.txt"
+    # file_path = "../data/txt_data/inner/3266_num_28.txt"
+    # file_path = "../data/txt_data/inner/3000_num_5.txt"
+
+    _str_text = read_txt_file_with_decoding(file_path)
+    bstext = BeautifulSoup(_str_text, 'html.parser')
+    list_of_bs_p_tags = bstext('p')
+    p_tags_text_list = list(map(get_text_from_bs_tag, list_of_bs_p_tags))
+    names_list = get_all_mentioned_names(p_tags_text_list)
+    t = get_analysts_executives_list(bstext, names_list)
+    t
+    bstext("p")[:20]
+
+    print()
 
 
 

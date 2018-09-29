@@ -135,17 +135,8 @@ def extract_tagged_names(tag_p_order, list_of_bs_p_tags):
         return None, None
 
 
-def one_text_parser_tagged(str_text: str):
 
-    bstext = BeautifulSoup(str_text, 'html.parser')
-    list_of_bs_p_tags = bstext('p')
-
-    company_name, company_name_tag_a_info, company_ticker = header_a_tag_company_name(bstext)
-    company_name_regex = None
-    company_name_desc = head_comp(bstext)
-    date_mod, date_pub, date_desc = head_date(bstext)
-
-    q_a_operator_order_dict = get_q_a_operator_order_dict(bstext, list_of_bs_p_tags)
+def extract_dialog_info_with_eao_dict(q_a_operator_order_dict, list_of_bs_p_tags):
     questions_n_p_tag, answers_n_p_tag = q_a_operator_order_dict["questions_order_list"], q_a_operator_order_dict["answers_order_list"]
 
     q_n_p_tag_tuple_structured_order, a_n_p_tag_tuple_structured_order = set_qa_order(questions_n_p_tag, answers_n_p_tag)
@@ -160,6 +151,30 @@ def one_text_parser_tagged(str_text: str):
 
     analyst_name_column, analysts_company_column = list(map(list, zip(*analysts_name_comp)))
     executive_name_column, executive_position_column = list(map(list, zip(*executives_name_comp)))
+
+    return analyst_name_column, analysts_company_column, executive_name_column, executive_position_column, \
+           q_column, a_column, q_n_p_tag_tuple_structured_order_column, a_n_p_tag_tuple_structured_order_column
+
+
+
+
+def one_text_parser_tagged(str_text: str):
+
+    bstext = BeautifulSoup(str_text, 'html.parser')
+    list_of_bs_p_tags = bstext('p')
+
+    company_name, company_name_tag_a_info, company_ticker = header_a_tag_company_name(bstext)
+    company_name_regex = None
+    company_name_desc = head_comp(bstext)
+    date_mod, date_pub, date_desc = head_date(bstext)
+
+    q_a_operator_order_dict = get_q_a_operator_order_dict(bstext, list_of_bs_p_tags)
+
+    analyst_name_column, analysts_company_column, \
+    executive_name_column, executive_position_column, \
+    q_column, a_column, \
+    q_n_p_tag_tuple_structured_order_column, \
+    a_n_p_tag_tuple_structured_order_column = extract_dialog_info_with_eao_dict(q_a_operator_order_dict, list_of_bs_p_tags)
 
     result_df_len = len(q_column)
 
@@ -198,9 +213,15 @@ if __name__=="__main__":
 
     _str_text = read_txt_file_with_decoding(file_path)
 
+    import time
+    start = time.time()
+
     df = one_text_parser_tagged(_str_text)
 
-    df.to_excel("test.xlsx")
+    end = time.time()
+    print(end - start)
+
+    # df.to_excel("test.xlsx")
 
     bstext = BeautifulSoup(_str_text, 'html.parser')
     list_of_bs_p_tags = bstext('p')

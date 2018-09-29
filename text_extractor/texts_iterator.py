@@ -91,7 +91,9 @@ def structurate_data(type):
 
 if __name__=="__main__":
 
-    structurate_data("fs")
+    # structurate_data("fs")
+
+    from text_parser.head_info_parser import get_analysts_executives_list
 
     # i = 0
     # for file_path, str_text in collect_txts_fs():
@@ -100,12 +102,12 @@ if __name__=="__main__":
     #     bstext = BeautifulSoup(str_text, 'html.parser')
     #
     #     try:
-    #         header_tag_str = str(bstext.find_all("header")[0])
-    #         print(i,
-    #               re.findall(r'href="/symbol/.+?"', header_tag_str)[0],
-    #               file_path)
+    #         l = get_analysts_executives_list(bstext)
+    #         print(l)
     #     except:
+    #         print()
     #         print(i, file_path, "EROR - EROR - EROR - EROR - EROR - EROR - EROR - EROR - EROR - EROR - EROR - EROR - EROR")
+    #         print()
     #         logger.error(file_path)
 
     # file_path, str_text = next(collect_txts_fs())

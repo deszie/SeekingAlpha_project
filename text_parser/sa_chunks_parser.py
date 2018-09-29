@@ -5,10 +5,10 @@ import numpy as np
 
 
 
-def qa_start_find(bs_text_data):
+def qa_start_find(list_p_tags):
     QA_begin = None
-    for p in range(len(bs_text_data)):
-        if bs_text_data[p].get('id') == "question-answer-session":
+    for p in range(len(list_p_tags)):
+        if list_p_tags[p].get('id') == "question-answer-session":
             QA_begin = p
             break
     return QA_begin

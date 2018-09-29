@@ -43,13 +43,13 @@ def get_text_from_bs_tag(a):
 def extract_text_from_tag_list(bs_tag_list):
     return ' '.join(list(map(get_text_from_bs_tag, bs_tag_list)))
 
-def file_is_not_full(bs_text_data, critical_length=7):
-    for p in range(len(bs_text_data)):
-        if 'question-and-answer session not available' in bs_text_data[p].text.lower():
+def file_is_not_full(list_of_p_tags, critical_length=7):
+    for p in range(len(list_of_p_tags)):
+        if 'question-and-answer session not available' in list_of_p_tags[p].text.lower():
             return True
-        if 'no q&a session for this event' in bs_text_data[p].text.lower():
+        if 'no q&a session for this event' in list_of_p_tags[p].text.lower():
             return True
-    if len(bs_text_data)<=critical_length:
+    if len(list_of_p_tags)<=critical_length:
         return True
     return False
 
@@ -75,12 +75,44 @@ def check_list_strings_in_string(s, l):
                 return True
     return False
 
+def get_list_items_by_index(list_, indexs):
+    return list(map(list_.__getitem__, indexs))
+
+def get_numbers_between_interval(list_, l, u):
+    return list(filter(lambda x: (x>=l) & (x<u), list_))
+
+
+
+
+def count_emerging_words(string, word_list):
+    return sum(map(lambda x: 1 if x in string else 0, word_list))
+
+
+
+def count_words_from_list_in_string(string, words_list):
+    string_lower = string.lower()
+    string_word_list = re.findall(pattern=r'[a-z]+', string=string_lower)
+
+    set_string_word_list = set(string_word_list)
+    set_words_list = set(words_list)
+    intersection = list(set.intersection(set_string_word_list, set_words_list))
+
+    return len(intersection)
+
+
+def count_strings_words_intersection(string1, string2):
+    s1_words = re.findall(r'[a-z]+', string1.lower())
+    s2_words = re.findall(r'[a-z]+', string2.lower())
+    return len(set.intersection(set(s1_words), set(s2_words)))
 
 
 
 
 
-
+if __name__=="__main__":
+    s1 = "a b c d"
+    s2 = "a g . k  - d"
+    print(count_strings_words_intersection(s1, s2))
 
 
 
