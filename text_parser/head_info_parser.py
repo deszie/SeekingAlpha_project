@@ -147,7 +147,18 @@ def header_a_tag_company_name(bstext):
 
 
 def calc_prct_change(number_list):
-    return [None] + [(n2+1)/(n1+1) for n1, n2 in zip(number_list, number_list[1:])]
+    prct_change_list = [None]
+    zip_list = list(zip(number_list, number_list[1:]))
+    l = len(zip_list)
+    for i in range(l):
+        n1, n2 = zip_list[i]
+        if n1==0:
+            prev_n1, prev_n2 = zip_list[i-1]
+            prct_change_list.append((n2 + 1) / (prev_n1 + 1))
+        else:
+            prct_change_list.append((n2+1)/(n1+1))
+    # return [None] + [(n2+1)/(n1+1) for n1, n2 in zip(number_list, number_list[1:])]
+    return prct_change_list
 
 def get_first_large_change(prct_chng_list, threshold=30):
     large_chngs = [None] + list(map(lambda x: 1 if x>=threshold else 0, prct_chng_list[1:]))

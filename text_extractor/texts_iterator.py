@@ -78,7 +78,7 @@ def structurate_data(type):
         print(iteration_count, text_id)
 
         if type == "fs":
-            if iteration_count%500==0:
+            if iteration_count%300==0:
                 pd.concat(df_list).to_excel(
                     os.path.join(XL_SAVE_FOLDER, 'table{}.xlsx'.format(iteration_count))
                 )
