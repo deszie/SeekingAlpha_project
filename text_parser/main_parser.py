@@ -35,9 +35,12 @@ if __name__=="__main__":
 
     from text_parser.utils import read_txt_file_with_decoding
 
-    file_path = '../data/txt_data/inner/3000_num_13.txt'
+    file_path = '../data/txt_data/inner/3001_num_3.txt'
 
     _str_text = read_txt_file_with_decoding(file_path)
+
+    bstext = BeautifulSoup(_str_text, 'html.parser')
+    list_of_bs_p_tags = bstext('p')
 
     df = main_text_parser(_str_text)
 
