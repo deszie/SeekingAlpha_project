@@ -35,7 +35,45 @@ if __name__=="__main__":
 
     from text_parser.utils import read_txt_file_with_decoding
 
-    file_path = '../data/txt_data/inner/3001_num_3.txt'
+    ### TypeError: unsupported operand type(s) for -: 'NoneType' and 'int' ----done except
+
+    # file_path = '../data/txt_data/outer/770-1046/850_num_12.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4689_num_7.txt'
+
+    ### ValueError: not enough values to unpack (expected 2, got 0) ----not done
+
+    # file_path = '../data/txt_data/inner/3087_num_20.txt'
+    # file_path = '../data/txt_data/inner/3308_num_10.txt'
+    # file_path = '../data/txt_data/inner/3308_num_6.txt'
+    # file_path = '../data/txt_data/outer/770-1046/882_num_25.txt'
+    # file_path = '../data/txt_data/outer/1900-2721/2227_num_29.txt'
+    # file_path = '../data/txt_data/outer/1900-2721/2552_num_6.txt'
+    # file_path = '../data/txt_data/outer/2721-3560/2876_num_25.txt'
+    # file_path = '../data/txt_data/outer/2721-3560/2877_num_23.txt'
+    # file_path = '../data/txt_data/outer/2721-3560/3358_num_6.txt'
+    # file_path = '../data/txt_data/outer/2721-3560/3525_num_1.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3578_num_2.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3578_num_6.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3647_num_18.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3663_num_6.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3670_num_3.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3794_num_22.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/3997_num_3.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4497_num_22.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4578_num_26.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4772_num_10.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4784_num_2.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4789_num_8.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4800_num_27.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4824_num_1.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4824_num_17.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4824_num_19.txt'
+
+    ### TypeError: unorderable types: int() > NoneType() ----partially (without strong part)
+
+    file_path = '../data/txt_data/outer/3560-4824/4309_num_0.txt'
+
+
 
     _str_text = read_txt_file_with_decoding(file_path)
 
@@ -45,13 +83,6 @@ if __name__=="__main__":
     df = main_text_parser(_str_text)
 
     print()
-
-
-
-
-
-
-
 
 
 

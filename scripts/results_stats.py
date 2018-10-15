@@ -18,6 +18,9 @@ def fs_xl_from_txt_results_stats_calc(XL_RESULTS_FOLDER):
     df_list = []
     for file in xl_files:
 
+        if file==".DS_Store":
+            continue
+
         print(file)
 
         df = pd.read_excel(os.path.join(XL_RESULTS_FOLDER, file))

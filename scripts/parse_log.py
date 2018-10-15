@@ -43,7 +43,12 @@ def parse_text_iterator_log(path):
     c = Counter(df_errors["ERROR"])
     df_freq = pd.DataFrame(list(c.items()), columns=["ERROR", "freq"]).sort_values("freq")
 
-    return df_errors, df_freq
+    errors_path_dict = {}
+    for e in df_freq["ERROR"]:
+        path_list = df_errors[df_errors["ERROR"]==e].PATH.tolist()
+        errors_path_dict[e] = path_list
+
+    return df_errors, df_freq, errors_path_dict
 
 
 
@@ -53,7 +58,8 @@ def parse_text_iterator_log(path):
 
 if __name__=="__main__":
 
-    df_errors, df_freq = parse_text_iterator_log("../log/log_text_iterator.log")
+    df_errors, df_freq, errors_path_dict = parse_text_iterator_log("../log/log_text_iterator.log")
+
 
     print()
 

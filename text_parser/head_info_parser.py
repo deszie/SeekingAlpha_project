@@ -6,6 +6,7 @@ from text_parser.utils import read_txt_file_with_decoding, get_text_from_bs_tag,
     get_list_items_by_index, get_numbers_between_interval, count_emerging_words, \
     count_words_from_list_in_string
 from nlp_core.names_extractor import *
+from nlp_core.words_lists import FLAG_EXECUTIVE_NAME_WORDS, FLAG_ANALYST_NAME_WORDS, FLAG_COMPANY_NAME_WORDS
 
 
 def name_company_split(name):
@@ -208,58 +209,99 @@ def _get_n_tags_with_names(p1_tags_text, names_list):
     n_names_tags = enumerate(map(lambda x: count_emerging_words(x, names_list), p1_tags_text))
     n_tags_with_names = list(filter(lambda x: x[1]>0, n_names_tags))
     n_tags, count_names = list(zip(*n_tags_with_names))
-    return n_tags, count_names
+    return list(n_tags), count_names
 
 
 
 
-def _if_eao(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
-    analysts_list_end = first_large_change
+def _get_tags_with_analysts_stop_words(p1_tags_text):
+    n_analysts_tags = enumerate(map(lambda x: count_emerging_words(x, FLAG_ANALYST_NAME_WORDS+FLAG_COMPANY_NAME_WORDS), p1_tags_text))
+    n_tags_with_analysts_stop_words = list(filter(lambda x: x[1] > 0, n_analysts_tags))
+    n_tags, count_names = list(zip(*n_tags_with_analysts_stop_words))
+    return list(n_tags)
 
-    executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, analysts_flag)
+def _get_tags_with_executives_stop_words(p1_tags_text):
+    n_executives_tags = enumerate(map(lambda x: count_emerging_words(x, FLAG_EXECUTIVE_NAME_WORDS), p1_tags_text))
+    n_tags_with_executives_stop_words = list(filter(lambda x: x[1] > 0, n_executives_tags))
+    n_tags, count_names = list(zip(*n_tags_with_executives_stop_words))
+    return list(n_tags)
+
+
+
+
+
+def _if_eao(p1_tags_text_list,
+            executives_flag,
+            analysts_flag,
+            operator_flag,
+            first_large_change,
+            n_tags_analysts_potential_names,
+            n_tags_executives_potential_names):
+
+    executive_indexs = get_numbers_between_interval(n_tags_executives_potential_names, executives_flag + 1, analysts_flag)
     executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
 
     if operator_flag<first_large_change:
-        analyst_indexs = get_numbers_between_interval(n_tags_with_name, analysts_flag + 1, operator_flag)
-        analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
+        analysts_list_end = operator_flag
     else:
-        analyst_indexs = get_numbers_between_interval(n_tags_with_name, analysts_flag + 1, analysts_list_end)
-        analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
-    return {"executives": executive_list, "analysts": analyst_list}
+        analysts_list_end = first_large_change
 
-
-
-def _if_ea(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
-    analysts_list_end = first_large_change
-
-    executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, analysts_flag)
-    executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
-
-    analyst_indexs = get_numbers_between_interval(n_tags_with_name, analysts_flag + 1, analysts_list_end)
+    analyst_indexs = get_numbers_between_interval(n_tags_analysts_potential_names, analysts_flag + 1, analysts_list_end)
     analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
 
     return {"executives": executive_list, "analysts": analyst_list}
 
 
 
-def _if_eo(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
-    executives_list_end = first_large_change
+def _if_ea(p1_tags_text_list,
+           executives_flag,
+           analysts_flag,
+           operator_flag,
+           first_large_change,
+           n_tags_analysts_potential_names,
+           n_tags_executives_potential_names):
+    analysts_list_end = first_large_change
 
-    if operator_flag<executives_list_end:
-        executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, operator_flag)
-        executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+    executive_indexs = get_numbers_between_interval(n_tags_executives_potential_names, executives_flag + 1, analysts_flag)
+    executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+
+    analyst_indexs = get_numbers_between_interval(n_tags_analysts_potential_names, analysts_flag + 1, analysts_list_end)
+    analyst_list = get_list_items_by_index(p1_tags_text_list, analyst_indexs)
+
+    return {"executives": executive_list, "analysts": analyst_list}
+
+
+
+def _if_eo(p1_tags_text_list,
+           executives_flag,
+           analysts_flag,
+           operator_flag,
+           first_large_change,
+           n_tags_analysts_potential_names,
+           n_tags_executives_potential_names):
+
+    if operator_flag<first_large_change:
+        executives_list_end = operator_flag
     else:
-        executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, executives_list_end)
-        executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
+        executives_list_end = first_large_change
+
+    executive_indexs = get_numbers_between_interval(n_tags_executives_potential_names, executives_flag + 1, executives_list_end)
+    executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
 
     return {"executives": executive_list, "analysts": []}
 
 
 
-def _if_e(p1_tags_text_list, executives_flag, analysts_flag, operator_flag, first_large_change, n_tags_with_name):
+def _if_e(p1_tags_text_list,
+          executives_flag,
+          analysts_flag,
+          operator_flag,
+          first_large_change,
+          n_tags_analysts_potential_names,
+          n_tags_executives_potential_names):
     executives_list_end = first_large_change
 
-    executive_indexs = get_numbers_between_interval(n_tags_with_name, executives_flag + 1, executives_list_end)
+    executive_indexs = get_numbers_between_interval(n_tags_executives_potential_names, executives_flag + 1, executives_list_end)
     executive_list = get_list_items_by_index(p1_tags_text_list, executive_indexs)
 
     return {"executives": executive_list, "analysts": []}
@@ -270,6 +312,12 @@ def get_analysts_executives_list(bstext, text_names_list):
     p1_tags = bstext.find_all("p", attrs={"class": "p p1"})
     p1_tags_text_list = list(map(get_text_from_bs_tag, p1_tags))
     p1_tags_str_list = list(map(str, p1_tags))
+
+    if len(p1_tags)<3:
+        re_p1 = re.compile(r'.+ p p1$')
+        p1_tags = bstext.find_all("p", attrs={"class": re_p1})
+        p1_tags_text_list = list(map(get_text_from_bs_tag, p1_tags))
+        p1_tags_str_list = list(map(str, p1_tags))
 
     abrupt_start_flag = get_abrupt_start_n(p1_tags_text_list)
     stop_word_tag_flag = find_first_tag_with_stop_words(p1_tags_text_list) - 1
@@ -296,12 +344,11 @@ def get_analysts_executives_list(bstext, text_names_list):
         raise ValueError("analysts_flag > first_large_change")
 
     n_tags_with_name, count_names_in_tags = _get_n_tags_with_names(p1_tags_text_before_main_flags_list, text_names_list)
+    n_tags_with_analysts_stop_words = _get_tags_with_analysts_stop_words(p1_tags_text_before_main_flags_list)
+    n_tags_with_executives_stop_words = _get_tags_with_executives_stop_words(p1_tags_text_before_main_flags_list)
 
-    # names = get_names_from_str_tags_list(p1_tags_text_before_main_flags_list)
-    # n_names = calc_n_names(names)
-    # n_tags_with_name_ = get_n_one_name_tags(n_names)
-
-    print()
+    n_tags_analysts_potential_names = sorted(set(n_tags_with_name + n_tags_with_analysts_stop_words))
+    n_tags_executives_potential_names = sorted(set(n_tags_with_name + n_tags_with_executives_stop_words))
 
     if executives_flag is None:
         raise ValueError("There are no executives header")
@@ -312,7 +359,8 @@ def get_analysts_executives_list(bstext, text_names_list):
                        analysts_flag,
                        operator_flag,
                        first_large_change_flag,
-                       n_tags_with_name)
+                       n_tags_analysts_potential_names,
+                       n_tags_executives_potential_names)
 
     elif (analysts_flag is not None) & (operator_flag is None):
         return _if_ea(p1_tags_text_before_main_flags_list,
@@ -320,7 +368,8 @@ def get_analysts_executives_list(bstext, text_names_list):
                        analysts_flag,
                        operator_flag,
                        first_large_change_flag,
-                       n_tags_with_name)
+                       n_tags_analysts_potential_names,
+                       n_tags_executives_potential_names)
 
     elif (analysts_flag is None) & (operator_flag is not None):
         return _if_eo(p1_tags_text_before_main_flags_list,
@@ -328,7 +377,8 @@ def get_analysts_executives_list(bstext, text_names_list):
                        analysts_flag,
                        operator_flag,
                        first_large_change_flag,
-                       n_tags_with_name)
+                       n_tags_analysts_potential_names,
+                       n_tags_executives_potential_names)
 
     elif (analysts_flag is None) & (operator_flag is None):
         return _if_e(p1_tags_text_before_main_flags_list,
@@ -336,7 +386,8 @@ def get_analysts_executives_list(bstext, text_names_list):
                        analysts_flag,
                        operator_flag,
                        first_large_change_flag,
-                       n_tags_with_name)
+                       n_tags_analysts_potential_names,
+                       n_tags_executives_potential_names)
 
     else:
         raise ValueError("Troubles with Analysts and Operator flags")
@@ -363,9 +414,9 @@ if __name__=="__main__":
 
     from nlp_core.names_extractor import get_all_mentioned_names
 
-    file_path = "../data/txt_data/inner/3250_num_18.txt"
+    # file_path = "../data/txt_data/inner/3250_num_18.txt"
     # file_path = "../data/txt_data/inner/3073_num_19.txt"
-    # file_path = "../data/txt_data/inner/3266_num_28.txt"
+    file_path = "../data/txt_data/inner/3266_num_28.txt"
     # file_path = "../data/txt_data/inner/3000_num_5.txt"
 
     _str_text = read_txt_file_with_decoding(file_path)

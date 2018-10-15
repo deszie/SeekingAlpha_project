@@ -36,7 +36,8 @@ FLAG_ANALYST_NAME_WORDS = [
     "bank",
     "inc",
     "co",
-    "group"
+    "group",
+    "llc"
 ]
 
 FLAG_COMPANY_NAME_WORDS = [
@@ -66,7 +67,17 @@ STOP_NAME_WORDS = [
     "when",
     "that",
     "but",
-    "about"
+    "about",
+    "we",
+    "me",
+    "our",
+    "us",
+    "have",
+    "are",
+    "is",
+    "were",
+    "was",
+    "been"
 ]
 
 DROP_STOP_WORDS = [

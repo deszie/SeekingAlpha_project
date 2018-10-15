@@ -24,14 +24,16 @@ def get_n_strong_tags(p_tags_list):
 def expand_analysts_executives_list(analysts_executives_list):
     executives = analysts_executives_list["executives"]
     analysts = analysts_executives_list["analysts"]
+
     executives.append('Unknown Executive')
+    executives.append('Unidentified Company Representative')
+    executives.append('Unidentified Corporate Participant')
+
     analysts.append('Unidentified Analyst')
+
     analysts_executives_list["executives"] = executives
     analysts_executives_list["analysts"] = analysts
-    analysts_executives_list["unidentified_participants"] = [
-        'Unidentified Company Representative',
-        'Unidentified Corporate Participant',
-        'Unknown Attendee']
+    analysts_executives_list["unidentified_participants"] = ['Unknown Attendee']
     return analysts_executives_list
 
 

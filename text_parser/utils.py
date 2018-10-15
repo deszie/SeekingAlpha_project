@@ -38,7 +38,7 @@ def read_txt_file_with_decoding(file_path):
     return text_file_decoded
 
 def get_text_from_bs_tag(a):
-    return a.text
+    return a.text.strip()
 
 def extract_text_from_tag_list(bs_tag_list):
     return ' '.join(list(map(get_text_from_bs_tag, bs_tag_list)))
