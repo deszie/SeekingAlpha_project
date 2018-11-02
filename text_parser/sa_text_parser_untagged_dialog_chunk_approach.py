@@ -5,7 +5,7 @@ import numpy as np
 
 from text_parser.utils import *
 from text_parser.sa_chunks_parser import *
-from text_parser.head_info_parser import *
+from text_parser.head_info_parser_for_untagged import *
 
 
 

@@ -182,21 +182,24 @@ def get_abrupt_start_n(list_p_tags_text):
             break
     return abrupt_start_n
 
+def _drop_spaces(x):
+    return x.replace(" ", "")
 
 def _get_aeo_list_headers(p_tags_str):
     executives_flag = None
     analysts_flag_plural = None
     analyst_flag_singular = None
     operator_flag = None
+    p_tags_str_drop_spaces = list(map(_drop_spaces, p_tags_str))
     # str_tags = list(map(str, p1_tags))
     for t in range(len(p_tags_str)):
-        if "<strong>Executives</strong>" in p_tags_str[t]:
+        if "<strong>Executives</strong>" in p_tags_str_drop_spaces[t]:
             executives_flag = t
-        if "<strong>Analysts</strong>" in p_tags_str[t]:
+        if "<strong>Analysts</strong>" in p_tags_str_drop_spaces[t]:
             analysts_flag_plural = t
-        if "<strong>Analyst</strong>" in p_tags_str[t]:
+        if "<strong>Analyst</strong>" in p_tags_str_drop_spaces[t]:
             analyst_flag_singular = t
-        if "<strong>Operator</strong>" in p_tags_str[t]:
+        if "<strong>Operator</strong>" in p_tags_str_drop_spaces[t]:
             operator_flag = t
     analysts_flag = analysts_flag_plural
     if analysts_flag_plural is None:
@@ -208,8 +211,11 @@ def _get_aeo_list_headers(p_tags_str):
 def _get_n_tags_with_names(p1_tags_text, names_list):
     n_names_tags = enumerate(map(lambda x: count_emerging_words(x, names_list), p1_tags_text))
     n_tags_with_names = list(filter(lambda x: x[1]>0, n_names_tags))
-    n_tags, count_names = list(zip(*n_tags_with_names))
-    return list(n_tags), count_names
+    if len(n_tags_with_names)>0:
+        n_tags, count_names = list(zip(*n_tags_with_names))
+        return list(n_tags), count_names
+    else:
+        return [], []
 
 
 
@@ -217,14 +223,20 @@ def _get_n_tags_with_names(p1_tags_text, names_list):
 def _get_tags_with_analysts_stop_words(p1_tags_text):
     n_analysts_tags = enumerate(map(lambda x: count_emerging_words(x, FLAG_ANALYST_NAME_WORDS+FLAG_COMPANY_NAME_WORDS), p1_tags_text))
     n_tags_with_analysts_stop_words = list(filter(lambda x: x[1] > 0, n_analysts_tags))
-    n_tags, count_names = list(zip(*n_tags_with_analysts_stop_words))
-    return list(n_tags)
+    if len(n_tags_with_analysts_stop_words)>0:
+        n_tags, count_names = list(zip(*n_tags_with_analysts_stop_words))
+        return list(n_tags)
+    else:
+        return []
 
 def _get_tags_with_executives_stop_words(p1_tags_text):
     n_executives_tags = enumerate(map(lambda x: count_emerging_words(x, FLAG_EXECUTIVE_NAME_WORDS), p1_tags_text))
     n_tags_with_executives_stop_words = list(filter(lambda x: x[1] > 0, n_executives_tags))
-    n_tags, count_names = list(zip(*n_tags_with_executives_stop_words))
-    return list(n_tags)
+    if len(n_tags_with_executives_stop_words)>0:
+        n_tags, count_names = list(zip(*n_tags_with_executives_stop_words))
+        return list(n_tags)
+    else:
+        return []
 
 
 
@@ -330,13 +342,18 @@ def get_analysts_executives_list(bstext, text_names_list):
         p1_tags_text_before_main_flags_list = p1_tags_text_list[:stop_word_tag_flag]
 
     p1_tags_len_list = list(map(len, p1_tags_text_before_main_flags_list))
-
     prct_chng_list = calc_prct_change(p1_tags_len_list)
     first_large_change = get_first_large_change(prct_chng_list, threshold=30)
 
     first_large_change_flag = len(p1_tags_text_before_main_flags_list)
     if first_large_change is not None:
         first_large_change_flag = first_large_change-1
+
+    if executives_flag is None:
+        raise ValueError("There are no executives header")
+
+    if (analysts_flag is not None) and (analysts_flag-executives_flag == 1):
+        return {"executives": [], "analysts": []}
 
     if executives_flag>first_large_change_flag:
         raise ValueError("executives_flag > first_large_change")
@@ -349,9 +366,6 @@ def get_analysts_executives_list(bstext, text_names_list):
 
     n_tags_analysts_potential_names = sorted(set(n_tags_with_name + n_tags_with_analysts_stop_words))
     n_tags_executives_potential_names = sorted(set(n_tags_with_name + n_tags_with_executives_stop_words))
-
-    if executives_flag is None:
-        raise ValueError("There are no executives header")
 
     if (analysts_flag is not None) & (operator_flag is not None):
         return _if_eao(p1_tags_text_before_main_flags_list,

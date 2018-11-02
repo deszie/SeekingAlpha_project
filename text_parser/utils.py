@@ -106,6 +106,12 @@ def count_strings_words_intersection(string1, string2):
     return len(set.intersection(set(s1_words), set(s2_words)))
 
 
+def drop_short_strings(string_list):
+    clean_list = list(filter(lambda x: len(x)>2, string_list))
+    return clean_list
+
+
+
 
 
 

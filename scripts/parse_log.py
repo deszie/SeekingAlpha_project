@@ -32,8 +32,8 @@ def parse_text_iterator_log(path):
 
     path_class_msg = list(filter(_is_path_cls_msg, log))
 
-    if len(path_class_msg)%3>0:
-        raise ValueError()
+    # if len(path_class_msg)%3>0:
+    #     raise ValueError()
 
     triplets = list(zip(*[iter(path_class_msg)] * 3))
     biplets = list(map(_pretiffy_triplet, triplets))
@@ -62,5 +62,10 @@ if __name__=="__main__":
 
 
     print()
+
+
+for p in df_errors[df_errors['ERROR']=='ValueError: executives_flag > first_large_change']["PATH"]:
+    print(p)
+
 
 

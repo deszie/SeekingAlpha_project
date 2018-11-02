@@ -7,7 +7,7 @@ import sys
 import collections
 
 from text_extractor.extractor_file_system_interaction import collect_txts_fs
-from text_parser.head_info_parser import header_a_tag_company_name, head_date
+from text_parser.head_info_parser_for_untagged import header_a_tag_company_name, head_date
 from text_parser.utils import file_is_not_full, RESULT_DF_COLUMNS_NAMES
 from utils import write_error_to_log
 

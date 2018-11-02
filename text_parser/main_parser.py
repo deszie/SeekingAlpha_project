@@ -1,11 +1,9 @@
 from bs4 import BeautifulSoup
 import pandas as pd
 
-from text_parser.sa_text_parser_untagged_dialog_chunk_approach import one_text_parser_untagged_chunk
 from text_parser.sa_text_parser_tagged_dialog import one_text_parser_tagged, is_tagged
 from text_parser.sa_text_parser_nlp_based import one_text_parser_nlp_based
 from text_parser.utils import file_is_not_full, RESULT_DF_COLUMNS_NAMES
-
 
 
 def main_text_parser(str_text):
@@ -18,7 +16,6 @@ def main_text_parser(str_text):
         result_df_from_text = pd.DataFrame(columns=RESULT_DF_COLUMNS_NAMES)
 
     else:
-
         if is_tagged(bstext):
             result_df_from_text = one_text_parser_tagged(str_text)
             print("+ tagged")
@@ -71,9 +68,23 @@ if __name__=="__main__":
 
     ### TypeError: unorderable types: int() > NoneType() ----partially (without strong part)
 
-    file_path = '../data/txt_data/outer/3560-4824/4309_num_0.txt'
+    # file_path = '../data/txt_data/outer/3560-4824/4309_num_0.txt'
+    # file_path = "../data/txt_data/inner/3052_num_10.txt"
 
 
+    # file_path = "../data/txt_data/outer/1900-2721/2041_num_29.txt"
+    # file_path = "../data/txt_data/outer/1900-2721/1946_num_14.txt"
+    # file_path = "../data/txt_data/outer/1242-1894/1871_num_24.txt"
+    # file_path = "../data/txt_data/outer/1-526/191_num_4.txt"
+    # file_path = "../data/txt_data/outer/1900-2721/2192_num_1.txt"
+
+
+    # file_path = "../data/txt_data/outer/1900-2721/2149_num_19.txt"
+    # file_path = "../data/txt_data/outer/1900-2721/2151_num_20.txt"
+    # file_path = "../data/txt_data/outer/1900-2721/2156_num_7.txt"
+    # file_path = "../data/txt_data/outer/1900-2721/2189_num_12.txt"
+    file_path = "../data/txt_data/outer/3560-4824/4434_num_1.txt"
+    # file_path = "../data/txt_data/outer/3560-4824/4436_num_22.txt"
 
     _str_text = read_txt_file_with_decoding(file_path)
 

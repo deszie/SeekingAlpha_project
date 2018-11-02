@@ -10,6 +10,9 @@ from text_parser.main_parser import main_text_parser
 from text_extractor.extractor_file_system_interaction import collect_txts_fs
 from text_parser.utils import read_txt_file_with_decoding
 from utils import write_error_to_log
+from text_parser.main_ae_table_creator import main_ae_table_creator
+
+
 
 TEXT_ITERATOR_CWD = os.path.dirname(os.path.realpath(__file__))
 
@@ -45,11 +48,22 @@ def df_postproc(df, new_columns_dict):
 def structurate_data(type):
 
     XL_SAVE_FOLDER = "../data/xl_results/"
+    XL_ANALYSTS_SAVE_FOLDER = "../data/xl_results/analysts/"
+    XL_EXECUTIVES_SAVE_FOLDER = "../data/xl_results/executives/"
     df_list = []
+    df_a_list = []
+    df_e_list = []
 
     if type=="fs":
         if not os.path.exists(XL_SAVE_FOLDER):
             os.mkdir(XL_SAVE_FOLDER)
+
+        if not os.path.exists(XL_ANALYSTS_SAVE_FOLDER):
+            os.mkdir(XL_ANALYSTS_SAVE_FOLDER)
+
+        if not os.path.exists(XL_EXECUTIVES_SAVE_FOLDER):
+            os.mkdir(XL_EXECUTIVES_SAVE_FOLDER)
+
     elif type == "bd":
         pass
     else:
@@ -69,8 +83,24 @@ def structurate_data(type):
                 {"SYS_INFO_OUTSIDE_PARSER": file_path,
                  "TEXT_ID": text_id}
             )
+
+            df_e, df_a = main_ae_table_creator(str_text)
+            df_a = df_postproc(
+                df_a,
+                {"SYS_INFO_OUTSIDE_PARSER": file_path,
+                 "TEXT_ID": text_id}
+            )
+            df_e = df_postproc(
+                df_e,
+                {"SYS_INFO_OUTSIDE_PARSER": file_path,
+                 "TEXT_ID": text_id}
+            )
+
             text_id+=1
-            if type == "fs": df_list.append(df)
+            if type == "fs":
+                df_list.append(df)
+                df_a_list.append(df_a)
+                df_e_list.append(df_e)
 
         except:
             write_error_to_log(logger=logger, file_path_info=file_path)
@@ -83,6 +113,17 @@ def structurate_data(type):
                     os.path.join(XL_SAVE_FOLDER, 'table{}.xlsx'.format(iteration_count))
                 )
                 df_list = []
+
+                pd.concat(df_a_list).to_excel(
+                    os.path.join(XL_ANALYSTS_SAVE_FOLDER, 'table_a{}.xlsx'.format(iteration_count))
+                )
+                df_a_list = []
+
+                pd.concat(df_e_list).to_excel(
+                    os.path.join(XL_EXECUTIVES_SAVE_FOLDER, 'table_e{}.xlsx'.format(iteration_count))
+                )
+                df_e_list = []
+
         elif type=="bd":
             pass
 
@@ -91,9 +132,9 @@ def structurate_data(type):
 
 if __name__=="__main__":
 
-    # structurate_data("fs")
+    structurate_data("fs")
 
-    from text_parser.head_info_parser import get_analysts_executives_list
+    from text_parser.head_info_parser_for_untagged import get_analysts_executives_list
 
     # i = 0
     # for file_path, str_text in collect_txts_fs():

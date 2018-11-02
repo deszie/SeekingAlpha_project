@@ -4,7 +4,7 @@ import re
 import numpy as np
 
 from text_parser.utils import *
-from text_parser.head_info_parser import *
+from text_parser.head_info_parser_for_untagged import *
 
 
 
@@ -201,6 +201,7 @@ def one_text_parser_tagged(str_text: str):
         analysts_list_column, executives_list_column, sys_info_column
     ]
     result_df = pd.DataFrame(result_df_column_based, index=RESULT_DF_COLUMNS_NAMES).T
+
     return result_df
 
 

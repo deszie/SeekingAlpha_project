@@ -3,9 +3,8 @@ from bs4 import BeautifulSoup
 
 from text_parser.utils import read_txt_file_with_decoding, get_text_from_bs_tag, \
     get_list_items_by_index, count_strings_words_intersection, count_words_from_list_in_string, RESULT_DF_COLUMNS_NAMES
-from text_parser.head_info_parser import *
+from text_parser.head_info_parser_for_untagged import *
 from nlp_core.tag_names_extractor import qa_start_find, get_n_strong_tags, expand_analysts_executives_list
-from nlp_core.names_extractor import get_names_from_str_tags_list, calc_n_names
 from nlp_core.words_lists import FLAG_EXECUTIVE_NAME_WORDS, FLAG_ANALYST_NAME_WORDS
 from text_parser.sa_text_parser_tagged_dialog import extract_dialog_info_with_eao_dict
 
@@ -97,10 +96,13 @@ def one_text_parser_nlp_based(str_text: str):
 
     names_list = get_all_mentioned_names(list_of_p_tags_text)
 
-    analysts_executives_list = get_analysts_executives_list(bstext, names_list)
-    analysts_executives_list = expand_analysts_executives_list(analysts_executives_list)
+    analysts_executives_list_identified = get_analysts_executives_list(bstext, names_list)
+    analysts_executives_list = expand_analysts_executives_list(analysts_executives_list_identified)
 
     qa_start = qa_start_find(list_of_bs_p_tags)
+    if qa_start is None:
+        raise ValueError("NO QA SESSION!")
+
     n_strong_tags = get_n_strong_tags(list_of_bs_p_tags)
     strong_tags_after_qa_list = list(filter(lambda x: x>qa_start, n_strong_tags))
 
@@ -117,6 +119,12 @@ def one_text_parser_nlp_based(str_text: str):
         'questions_order_list': sorted(n_analysts_tags),
         'answers_order_list': sorted(n_exetuves_tags)
     }
+
+    if (len(n_analysts_tags)==0) & (len(n_exetuves_tags)==0):
+        raise ValueError("Didn't find any Analysts or Executives")
+    if len(n_analysts_tags)==0:
+        raise ValueError("Didn't find any Analysts (Questions) in this Session!")
+
     analyst_name_column, analysts_company_column, \
     executive_name_column, executive_position_column, \
     q_column, a_column, \
